@@ -1,0 +1,3 @@
+scenario	total	dlq_after_outage	inbox	push_delivered_after_recovery	dlq_left
+transient	430	430	430	0	430
+permanent	1100	1100	1100	0	1100
