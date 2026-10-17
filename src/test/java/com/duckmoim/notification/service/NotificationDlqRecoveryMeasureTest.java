@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +35,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * <p>건수는 공통 0단계 가정의 피크 값에서 왔다. ① 일시 장애 30분 = 430건, ② 잘못된 VAPID 키 1시간 = 1,100건.
  *
+ * <p>장애가 끝나면 관리자 재처리(NotificationDlqRequeueService)를 부르고 워커를 돌린다. 개선 전(result-before)에는 이 단계 없이 워커만
+ * 한 주기 더 돌렸다.
+ *
  * <p>MEASURE=true 일 때만 돈다. 결과는 measure/C-dlq-reprocess/result-{MEASURE_LABEL}.tsv 에 쓴다.
  */
 @SpringBootTest
@@ -43,6 +48,7 @@ class NotificationDlqRecoveryMeasureTest {
   private static final int TRANSIENT_OUTAGE_COUNT = 430;
   private static final int PERMANENT_OUTAGE_COUNT = 1_100;
   private static final int MAX_ATTEMPTS = 3;
+  private static final long MEASURE_ADMIN_ID = 1L;
 
   /** 다음 푸시 호출이 무엇을 할지. 장애 중에는 던지고, 회복 뒤에는 성공을 센다. */
   private static final AtomicReference<Runnable> PUSH = new AtomicReference<>(() -> {});
@@ -60,6 +66,7 @@ class NotificationDlqRecoveryMeasureTest {
   }
 
   @Autowired private NotificationDispatchBatch notificationDispatchBatch;
+  @Autowired private NotificationDlqRequeueService requeueService;
   @Autowired private NotificationOutboxRepository outboxRepository;
   @Autowired private JdbcTemplate jdbc;
 
@@ -114,16 +121,33 @@ class NotificationDlqRecoveryMeasureTest {
     recoverAndMeasure("permanent", PERMANENT_OUTAGE_COUNT);
   }
 
-  /** 장애를 끝내고 워커를 한 주기 더 돌린 뒤 무엇이 남았는지 잰다. */
+  /**
+   * 장애를 끝내고, 관리자가 장애 구간을 재처리한 뒤, 워커를 돌려 무엇이 남았는지 잰다.
+   *
+   * <p>개선 전(커밋 8cfbf5d)에는 재처리 단계가 없었다 — 장애 뒤 워커를 한 주기 더 돌린 것뿐이다. 그 밖의 조건(건수, 가짜 발송기, 워커)은 같다.
+   */
   private void recoverAndMeasure(String scenario, int total) {
     PUSH.set(DELIVERED_PUSHES::incrementAndGet);
     int dlqBeforeRecovery = dlqCount();
+    LocalDateTime nowInUtc = LocalDateTime.now(ZoneOffset.UTC);
 
-    notificationDispatchBatch.dispatchPendingNotifications();
+    long requeueStarted = System.nanoTime();
+    int requeued =
+        requeueService.requeue(nowInUtc.minusHours(1), nowInUtc.plusHours(1), MEASURE_ADMIN_ID);
+    long requeueMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - requeueStarted);
+
+    long deliveryStarted = System.nanoTime();
     Awaitility.await()
-        .pollDelay(2, TimeUnit.SECONDS)
-        .atMost(10, TimeUnit.SECONDS)
-        .until(() -> true);
+        .atMost(120, TimeUnit.SECONDS)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .until(
+            () -> {
+              if (DELIVERED_PUSHES.get() < total) {
+                notificationDispatchBatch.dispatchPendingNotifications();
+              }
+              return DELIVERED_PUSHES.get() >= total;
+            });
+    long deliveryMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - deliveryStarted);
 
     rows.add(
         String.join(
@@ -133,7 +157,10 @@ class NotificationDlqRecoveryMeasureTest {
             String.valueOf(dlqBeforeRecovery),
             String.valueOf(inboxCount()),
             String.valueOf(DELIVERED_PUSHES.get()),
-            String.valueOf(dlqCount())));
+            String.valueOf(dlqCount()),
+            String.valueOf(requeued),
+            String.valueOf(requeueMillis),
+            String.valueOf(deliveryMillis)));
   }
 
   private void savePending(int count) {
@@ -197,7 +224,8 @@ class NotificationDlqRecoveryMeasureTest {
     if (Files.notExists(file)) {
       Files.writeString(
           file,
-          "scenario\ttotal\tdlq_after_outage\tinbox\tpush_delivered_after_recovery\tdlq_left\n");
+          "scenario\ttotal\tdlq_after_outage\tinbox\tpush_delivered_after_recovery\tdlq_left"
+              + "\trequeued\trequeue_ms\tdelivery_ms\n");
     }
     Files.writeString(file, String.join("\n", rows) + "\n", StandardOpenOption.APPEND);
   }
