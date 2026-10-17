@@ -1,45 +1,9 @@
-<p align="center">
-  <img src="docs/assets/banner.png" alt="덕모임" width="100%">
-</p>
+<h1>덕모임</h1>
 
-<h1 align="center">덕모임 백엔드</h1>
+서울의 콘서트·팝업·생일카페 정보를 모아 보여주고, 행사마다 함께 갈 사람을 모집하는 동행 매칭 서비스 [**덕모임**](https://duckmoim.com)입니다.
 
-<p align="center">
-  <a href="https://github.com/potenup-final/duckmoim-backend/actions/workflows/ci-cd.yml"><img src="https://github.com/potenup-final/duckmoim-backend/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD"></a>
-  <a href="https://github.com/potenup-final/duckmoim-backend/actions/workflows/api-docs.yml"><img src="https://github.com/potenup-final/duckmoim-backend/actions/workflows/api-docs.yml/badge.svg" alt="API 문서"></a>
-  <img src="https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white" alt="Java 17">
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 3.5">
-  <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4">
-  <img src="https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white" alt="Redis">
-</p>
-
-<p align="center">
-  <a href="https://duckmoim.com">서비스</a> ·
-  <a href="https://potenup-final.github.io/duckmoim-backend/">API 문서</a> ·
-  <a href="https://github.com/potenup-final/duckmoim-wiki">위키</a> ·
-  <a href="https://github.com/potenup-final/duckmoim-frontend">프론트엔드</a>
-</p>
-
-## 소개
-
-생일카페와 팝업은 혼자 가기 애매합니다. \
-줄서기, 사진, 특전 조건은 둘 이상이어야 맞출 수 있습니다. \
-그런데 같이 갈 사람을 구하는 곳은 사실상 X 하나입니다.
-
-덕모임은 행사 정보 위에 동행 모집을 얹었습니다. \
-서울 생일카페와 팝업을 위치 기준으로 모으고, 행사마다 모집글과 채팅을 붙였습니다. \
-미성년자가 낯선 사람과 만나는 서비스라 신고, 제재, 감사 기록을 먼저 만들었습니다.
-
-## 시연 영상
-
-<!--
-  GitHub 에서 바로 재생되게 하려면 README 편집 화면에 demo.mp4 를 드래그해서 넣습니다.
-  생기는 user-attachments 주소 한 줄을 이 자리에 붙이면 됩니다.
--->
-<p>
-  <a href="docs/assets/demo.mp4"><img src="docs/assets/demo-poster.png" width="240" alt="시연 영상"></a><br>
-  <sub>가입부터 동행 채팅까지, 1분 23초</sub>
-</p>
+> 이 저장소는 팀 프로젝트 원본 [potenup-final/duckmoim-backend](https://github.com/potenup-final/duckmoim-backend)를 fork하여, <br>
+> 프로젝트 종료 후 안정성 개선을 개인적으로 이어 간 저장소입니다. 개선 작업은 [아래](#개선-작업-fork)에 있습니다.
 
 ## 주요 기능
 
@@ -50,14 +14,70 @@
   <img src="docs/assets/screen-post.png" width="150" alt="모집글">
   <img src="docs/assets/screen-chat.png" width="170" alt="채팅">
 </p>
-<p><sub>홈 · 행사 상세 · 동행 목록 · 모집글 · 채팅</sub></p>
 
-| 1차 배포 | 2차 배포 |
-| --- | --- |
-| 카카오 로그인, 프로필 | 채팅방, 메시지, 사진 |
-| 위치 기준 행사 조회 | 실시간 수신 (SSE) |
-| 모집글, 댓글, 비밀 댓글 | 알림함, 웹 푸시 |
-| 신고, 제재, 백오피스 | 읽음 표시, 채팅 신고 |
+| 기능        | 내용                                       | 배포      |
+|-----------|------------------------------------------|---------|
+| 행사 탐색     | 서울 콘서트·팝업·생일카페를 종류, 지역, 기간, 키워드로 찾기      | 1차      |
+| 동행 모집글    | 행사를 골라 만남 시각과 지도 핀으로 동행 모집, 만남 임박순 목록    | 1차      |
+| 댓글과 비밀 댓글 | 대댓글과 비밀 댓글. 비밀 댓글 본문은 작성자와 방장에게만 응답      | 1차      |
+| 회원        | 카카오 로그인, 만 14세 미만 가입 제한, 프로필과 내 활동       | 1차      |
+| 신고와 제재    | 회원·글·댓글·채팅 신고, 백오피스 처리와 제재, 관리자 행위 감사 로그 | 1차 · 2차 |
+| 채팅        | 모집글마다 채팅방, SSE 실시간 수신과 끊긴 구간 재전송, 사진 보호  | 2차      |
+| 알림        | 댓글·답글·채팅 알림을 알림함과 웹 푸시로, 종류별 수신 설정       | 2차      |
+
+## 담당 역할 및 성과
+
+백엔드 3인 중 **알림 파이프라인**, **신고·제재 백오피스**, **요구사항·설계 문서**와 **AI 개발 워크플로우**를 맡았습니다.
+
+### 알림 파이프라인
+
+- 댓글 작성과 알림 발송이 따로 처리되는 이중 쓰기 문제를 Transactional Outbox 패턴으로 해결해, 알림 채널이 실패해도 댓글 작성이 실패하지 않도록 분리
+- 워커 2대가 같은 아웃박스 행을 집는 문제를 `FOR UPDATE SKIP LOCKED` 기반 리스 선점으로 해결해 충돌 168건 → 0건, 200건 처리 983ms → 512ms
+- 실패한 알림은 최대 3회 시도 후 DLQ로 격리하고, 인앱 알림과 웹 푸시를 트랜잭션 단계로 나눠 푸시가 실패해도 알림함은 남도록 설계
+- 채팅 알림은 지금 그 방을 보고 있는 멤버를 Redis 접속 상태로 판정해 만들지 않도록 처리
+- 30일이 지난 알림을 지우는 만료 배치는 두 인스턴스가 함께 돌아도 결과가 같도록 잠금 없이 멱등으로 설계
+
+### 신고·제재 백오피스
+
+- 오프라인 만남의 안전을 위해 신고 접수·처리와 제재 백오피스를 구현
+- 관리자의 제재·해제·비밀 댓글 열람을 수정하거나 삭제할 수 없는 감사 로그로 기록
+
+### 요구사항·설계 문서
+
+- 1·2차 요구사항 106개와 불변식을 ID로 정리하고, 설계 결정을 ADR 7건으로 기록
+- 설계 문서 정합성을 점검해 불일치 92건을 정정하고, 2차 제품 결정 안건 23건을 회의 한 번에 확정
+
+### AI 개발 워크플로우와 품질 게이트
+
+- AI 에이전트가 요구사항 ID로 위키를 조회해 테스트 목록을 뽑고 구현하며, 빌드 게이트에 실패하면 스스로 고치는 워크플로우 구축
+- 강제력이 없던 위키 컨벤션 944줄을 Checkstyle·ArchUnit 빌드 게이트로 옮겨, 규칙을 어기면 빌드가 깨지도록 구성
+- Docker 기반 Testcontainers로 통합 테스트 환경을 구성해 동시성과 트랜잭션 경계를 실제 MySQL에서 검증
+
+## 개선 작업 (fork)
+
+팀 프로젝트가 끝난 뒤 코드에서 찾은 문제를 로컬에서 재현하고, 개선 전후를 측정했습니다. 작업마다 이슈에 문제와 원인을, PR에 해결 과정과 측정 결과를 남겼습니다.
+
+| 문제                                                                              | 해결                                                      | 결과                                                | 기록                                                                                                                        |
+|---------------------------------------------------------------------------------|---------------------------------------------------------|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| 푸시 장애로 DLQ에 쌓인 알림을 장애가 끝난 뒤에도 재발송할 수 없음. DLQ로 옮길 때 원본 아웃박스 행을 지우는데 워커는 아웃박스만 조회 | 운영자가 장애 구간을 지정하면 DLQ 알림을 원래 ID로 아웃박스에 재등록해 기존 워커가 다시 발송 | 미발송 푸시 0 / 1,100건 → 1,100 / 1,100건 재발송, 알림함 중복 0건 | [이슈 #1](https://github.com/ssggii/duckmoim-backend/issues/1) · [PR #2](https://github.com/ssggii/duckmoim-backend/pull/2) |
+
+### 측정 방식
+
+- 환경: Testcontainers MySQL 8.4, 실제 발송 워커에 가짜 푸시 발송기를 꽂아 장애를 재현
+- 규모: 서비스가 자리 잡은 상황을 가정해 피크 분당 푸시 18건으로 잡고, 푸시 서비스 30분 장애(430건)와 잘못된 푸시 설정 1시간 배포(1,100건)를 재현
+- 비교: 개선 전후의 차이는 재처리 호출 하나뿐이고 건수·발송기·워커는 같은 조건
+
+### 재현 방법
+
+| 폴더                                                 | 내용          |
+|----------------------------------------------------|-------------|
+| [measure/C-dlq-reprocess](measure/C-dlq-reprocess) | 개선 전후 측정 결과 |
+
+```bash
+MEASURE=true MEASURE_LABEL=after ./gradlew test --tests 'com.duckmoim.notification.service.NotificationDlqRecoveryMeasureTest' --rerun
+```
+
+측정 테스트는 `MEASURE=true` 일 때만 돌고 평소 빌드에는 들어가지 않습니다.
 
 ## PoC
 
@@ -69,11 +89,11 @@
   <img src="docs/assets/poc-comeback.png" width="280" alt="컴백 카운트다운">
 </p>
 
-| 후보 | 하루 방문 | 체류 |
-| --- | --- | --- |
-| 생일카페 정보 | 155 | 약 2분 |
-| 앨범 특전 정보 | 31 | 1분 미만 |
-| 컴백 카운트다운 | 23 | 1분 미만 |
+| 후보       | 하루 방문 | 체류    |
+|----------|-------|-------|
+| 생일카페 정보  | 155   | 약 2분  |
+| 앨범 특전 정보 | 31    | 1분 미만 |
+| 컴백 카운트다운 | 23    | 1분 미만 |
 
 <p>
   <img src="docs/assets/poc-metrics.png" width="640" alt="생일카페 정보 PoC 지표">
@@ -100,80 +120,29 @@
   <img src="docs/assets/architecture.png" alt="시스템 아키텍처" width="900">
 </p>
 
-- 프론트 Next.js, Vercel. 백엔드와 도메인이 달라 Refresh 토큰을 쿠키에 두지 않습니다
-- API ALB 뒤 EC2 두 대, Spring Boot, 블루/그린 배포
-- 데이터 RDS MySQL 8.4, Redis(SSE 팬아웃), S3(채팅 사진)
-- 행사 등록은 크롤러가 합니다
-- 관측 Alloy → Grafana Cloud, CloudWatch → Slack, Metabase, GA, Clarity
-
 ## 도메인 구조
 
-바운디드 컨텍스트 7개. \
-트래픽 패턴, 인증 경계, 캐싱 전략 중 하나라도 다르면 나눴습니다.
-
-| 컨텍스트 | 등급 | 패키지 | 맡는 것 | 요구사항 ID | 마이그레이션 |
-| --- | --- | --- | --- | --- | --- |
-| Identity | 핵심 | `identity`, `auth` | 로그인, 토큰, 프로필 | AU | V10 ~ |
-| Companion | 핵심 | `companion` | 모집글, 댓글 | PO, CM | V20 ~ |
-| Chat | 핵심 | `chat` | 채팅방, 메시지, 사진 | CH | V700 ~ |
-| Catalog | 지원 | `catalog` | 행사, 지역 | EV | V1 ~ |
-| Safety | 지원 | `safety` | 신고, 제재, 감사 기록 | SF | V30 ~ |
-| Notification | 지원 | `notification` | 알림, 아웃박스, 웹 푸시 | NT | V800 ~ |
-| Admin | 일반 | `admin` | 백오피스 인가 | AD | V30 ~ |
-
-- 알림은 아웃박스로 떼어내 도메인 트랜잭션을 붙잡지 않습니다
-- 닉네임 유일성은 사전 조회와 DB 제약으로 두 번 막습니다
-- Admin이 의존하는 곳은 Safety 하나뿐입니다
-
-## 기술적 결정
-
-자세한 근거는 [위키](https://github.com/potenup-final/duckmoim-wiki)의 ADR에 있습니다.
-
-### 워커 선점
-
-서버 두 대의 아웃박스 워커가 같은 행을 집었습니다. 200건 중 162건 충돌. \
-후보 둘을 전용 테스트로 실측했습니다.
-
-| 방식 | 충돌 | 200건 비우기 | 발행 지연 |
-| --- | --- | --- | --- |
-| 선점 없음 | 162 | 996ms | 없음 |
-| `SKIP LOCKED` + 리스 | 0 | 577ms | 12ms |
-| 조건부 `UPDATE` + 리스 | 0 | 714ms | 18ms |
-
-### 채팅 전송, SSE
-
-폴링, 롱 폴링, SSE, WebSocket을 비교했습니다. \
-양방향이 필요 없다는 게 결정적이었습니다. 보내는 건 POST, 받는 것만 서버가 밀어줍니다. \
-WebSocket은 상태를 가져서 블루/그린의 전제인 무상태와 맞지 않았습니다.
-
-대가. 연결이 인스턴스 메모리에만 있어 Redis 팬아웃이 서버 사이를 잇습니다. \
-스트림이 5xx면 30초 폴링으로 버티고, 끊긴 구간은 `Last-Event-ID`로 채웁니다.
-
-### 무중단 배포와 마이그레이션
-
-배포 중 구버전과 신버전이 같이 돕니다. \
-스키마 변경을 확장 단계와 수축 단계로 나눴습니다. \
-컬럼 하나 바꾸는 데 배포가 여러 번 필요해진 게 대가입니다.
-
-### 백오피스 인가
-
-요구사항은 "별도 계정" 한 줄이었습니다. \
-인증은 카카오, 인가는 `AdminAccount` 화이트리스트로 했습니다. \
-자체 계정이면 비밀번호 관리와 유출 대응이 전부 우리 몫이 되고, 그 문 안에 비밀 댓글이 있기 때문입니다. \
-감사 기록은 추가만 되고 고치거나 지울 수 없습니다.
+| 컨텍스트         | 등급 | 패키지                | 맡는 것           | 요구사항 ID | 마이그레이션 |
+|--------------|----|--------------------|----------------|---------|--------|
+| Identity     | 핵심 | `identity`, `auth` | 로그인, 토큰, 프로필   | AU      | V10 ~  |
+| Companion    | 핵심 | `companion`        | 모집글, 댓글        | PO, CM  | V20 ~  |
+| Chat         | 핵심 | `chat`             | 채팅방, 메시지, 사진   | CH      | V700 ~ |
+| Catalog      | 지원 | `catalog`          | 행사, 지역         | EV      | V1 ~   |
+| Safety       | 지원 | `safety`           | 신고, 제재, 감사 기록  | SF      | V30 ~  |
+| Notification | 지원 | `notification`     | 알림, 아웃박스, 웹 푸시 | NT      | V800 ~ |
+| Admin        | 일반 | `admin`            | 백오피스 인가        | AD      | V30 ~  |
 
 ## 품질 게이트
 
 규칙을 문서에서 빌드로 옮겼습니다. 어기면 빌드가 깨지고 머지가 안 됩니다.
 
-| 게이트 | 막는 것 |
-| --- | --- |
-| Spotless | 포맷 |
+| 게이트        | 막는 것                               |
+|------------|------------------------------------|
+| Spotless   | 포맷                                 |
 | Checkstyle | 로그에 남기면 안 되는 값 (본문, 닉네임, 출생연도, 토큰) |
-| ArchUnit | 레이어 의존 방향, 트랜잭션 위치 |
-| 위키 참조 검증 | 코드가 인용한 위키 경로가 실제로 있는지 |
+| ArchUnit   | 레이어 의존 방향, 트랜잭션 위치                 |
+| 위키 참조 검증   | 코드가 인용한 위키 경로가 실제로 있는지             |
 
-- 자동 테스트 2,091건
 - `develop`은 빌드만, `main`은 ECR 푸시 후 블루/그린 배포
 - 운영 Swagger는 닫고, 스펙을 CI에서 뽑아 [정적 페이지](https://potenup-final.github.io/duckmoim-backend/)로 배포
 
@@ -190,9 +159,6 @@ WebSocket은 상태를 가져서 블루/그린의 전제인 무상태와 맞지 
 [4] ./gradlew check  실패하면 [3] 으로
 [5] PR
 ```
-
-사람이 보는 자리는 계획과 커밋 두 곳입니다. \
-자세한 내용은 [docs/harness/backend.md](docs/harness/backend.md)에 있습니다.
 
 ## 프로젝트 구조
 
@@ -217,7 +183,7 @@ config/checkstyle/                로그 금지 값 규칙
 ## 시작하기
 
 ```bash
-git clone --recurse-submodules https://github.com/potenup-final/duckmoim-backend.git
+git clone --recurse-submodules https://github.com/ssggii/duckmoim-backend.git
 cd duckmoim-backend
 cp .env.example .env
 docker compose up -d          # MySQL 8.4, Redis
