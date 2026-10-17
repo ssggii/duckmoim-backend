@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.Repository;
@@ -96,4 +97,38 @@ public interface NotificationOutboxRepository extends Repository<NotificationOut
       """)
   List<NotificationOutbox> findSendableForUpdate(
       LocalDateTime nowInUtc, int maxAttempts, Pageable pageable);
+
+  /**
+   * DLQ 에서 되돌린 건을 <b>원래 번호 그대로</b> 다시 넣는다 (DLQ 재처리).
+   *
+   * <p><b>새 번호로 넣으면 알림함이 두 벌이 된다.</b> 워커의 T1 은 {@code existsByOutboxId} 로 이미 만든 알림을 건너뛰고 유니크 키도
+   * {@code notification.outbox_id} 다 (ADR 0010 · V801). 번호가 같아야 알림함이 있는 건은 푸시만 다시 가고, 알림함까지 없는 건은
+   * 알림함부터 만든다.
+   *
+   * <p><b>네이티브 쿼리인 이유</b> — 엔티티가 {@code IDENTITY} 라 JPA 로는 번호를 지정해 저장할 수 없다. 지운 번호라 PK 충돌은 없다.
+   *
+   * <p>처음 발행된 것처럼 시작한다. {@code attempts} 를 0 으로 두지 않으면 {@code attempts < maxAttempts} 에 걸려 워커가 다시
+   * 집지 않는다. 인자를 도메인 객체가 아니라 값으로 받는 것은 {@code common} 이 {@code notification} 을 몰라야 해서다 (도메인-모델링.md
+   * 「2. 바운디드 컨텍스트」).
+   */
+  @Modifying
+  @Query(
+      nativeQuery = true,
+      value =
+          """
+          INSERT INTO notification_outbox
+              (id, recipient_id, kind, post_id, comment_id, room_id, message_id,
+               status, attempts, next_attempt_at, created_at, updated_at)
+          VALUES (:id, :recipientId, :kind, :postId, :commentId, :roomId, :messageId,
+                  'PENDING', 0, NULL, :nowInUtc, :nowInUtc)
+          """)
+  int restore(
+      Long id,
+      Long recipientId,
+      String kind,
+      Long postId,
+      Long commentId,
+      Long roomId,
+      Long messageId,
+      LocalDateTime nowInUtc);
 }
