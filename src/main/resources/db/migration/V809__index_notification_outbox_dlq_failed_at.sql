@@ -1,0 +1,14 @@
+-- Notification 대역(V800~V899). V808 이 푸시 구독이므로 V809 다.
+--
+-- DLQ 재처리의 대상 조회다. 관리자가 장애 구간을 실패 시각으로 지정한다.
+--
+--   WHERE failed_at >= ? AND failed_at < ?
+--   ORDER BY failed_at, id
+--   LIMIT 200 FOR UPDATE SKIP LOCKED
+--
+-- V803 은 outbox_id 유니크만 두었다. 그때는 이 표를 읽는 경로가 count 하나라 인덱스가 할 일이
+-- 없었다. 없으면 범위 조회가 풀 스캔이 되고, FOR UPDATE 가 훑은 행을 전부 잠근다.
+--
+-- id 를 뒤에 붙인 것은 failed_at 이 겹칠 수 있어서다 — 장애 중에는 한 주기에 수십 건이 거의 같은
+-- 시각에 옮겨진다. 정렬이 인덱스 순서와 같아야 청크마다 filesort 가 없다.
+CREATE INDEX ix_notification_outbox_dlq_failed_at_id ON notification_outbox_dlq (failed_at, id);

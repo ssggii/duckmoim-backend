@@ -1,0 +1,3 @@
+scenario	total	dlq_after_outage	inbox	push_delivered_after_recovery	dlq_left	requeued	requeue_ms	delivery_ms
+transient	430	430	430	430	0	430	329	2269
+permanent	1100	1100	1100	1100	0	1100	602	3779
